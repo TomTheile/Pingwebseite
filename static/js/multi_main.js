@@ -23,36 +23,57 @@ document.addEventListener('DOMContentLoaded', function() {
         input.focus();
         
         // Add event listeners
-        input.addEventListener('keypress', (e) => {
+        input.addEventListener('keydown', (e) => {
             if (e.key === 'Enter') {
                 e.preventDefault();
                 addUrlInput();
             }
         });
         
-        div.querySelector('.remove-url').addEventListener('click', () => {
-            if (urlInputsContainer.children.length > 1) {
-                div.remove();
+        div.querySelector('.remove-url').addEventListener('click', (e) => {
+            const button = e.target.closest('.btn');
+            if (button && urlInputsContainer.children.length > 1) {
+                button.closest('.input-group').remove();
             }
         });
     }
 
-    // Initialize first URL input
-    addUrlBtn.addEventListener('click', addUrlInput);
-    
-    // Add event listener to first URL input
-    urlInputsContainer.querySelector('input').addEventListener('keypress', (e) => {
-        if (e.key === 'Enter') {
-            e.preventDefault();
-            addUrlInput();
-        }
+    // Initialize event listeners
+    addUrlBtn.addEventListener('click', () => {
+        addUrlInput();
     });
     
-    urlInputsContainer.querySelector('.remove-url').addEventListener('click', (e) => {
-        if (urlInputsContainer.children.length > 1) {
-            e.target.closest('.input-group').remove();
-        }
-    });
+    // Add event listeners to initial URL input
+    const initialUrlInput = urlInputsContainer.querySelector('input');
+    if (initialUrlInput) {
+        initialUrlInput.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                addUrlInput();
+            }
+        });
+    }
+
+    // Add click handler to initial remove button
+    const initialRemoveBtn = urlInputsContainer.querySelector('.remove-url');
+    if (initialRemoveBtn) {
+        initialRemoveBtn.addEventListener('click', (e) => {
+            const button = e.target.closest('.btn');
+            if (button && urlInputsContainer.children.length > 1) {
+                button.closest('.input-group').remove();
+            }
+        });
+    }
+
+    // Function to get all URLs from inputs
+    function getAllUrls() {
+        const urls = [];
+        document.querySelectorAll('.url-input').forEach(input => {
+            const url = input.value.trim();
+            if (url) urls.push(url);
+        });
+        return urls;
+    }
     const refreshHistoryBtn = document.getElementById('refreshHistoryBtn');
     const addNewTargetBtn = document.getElementById('addNewTargetBtn');
     const emptyStateAddBtn = document.getElementById('emptyStateAddBtn');
