@@ -38,21 +38,21 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
-    // Initialize event listeners
-    addUrlBtn.addEventListener('click', () => {
-        addUrlInput();
-    });
-    
-    // Add event listeners to initial URL input
-    const initialUrlInput = urlInputsContainer.querySelector('input');
-    if (initialUrlInput) {
-        initialUrlInput.addEventListener('keydown', (e) => {
+    // Initialize event listeners for both initial URL inputs
+    const initialUrlInputs = urlInputsContainer.querySelectorAll('input');
+    initialUrlInputs.forEach(input => {
+        input.addEventListener('keydown', (e) => {
             if (e.key === 'Enter') {
                 e.preventDefault();
                 addUrlInput();
             }
         });
-    }
+    });
+
+    // Add URL button listener
+    addUrlBtn.addEventListener('click', () => {
+        addUrlInput();
+    });
 
     // Add click handler to initial remove button
     const initialRemoveBtn = urlInputsContainer.querySelector('.remove-url');
