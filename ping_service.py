@@ -9,6 +9,7 @@ import logging
 import requests
 from datetime import datetime
 from collections import deque
+from discord_webhook import DiscordWebhook, DiscordEmbed
 
 logger = logging.getLogger(__name__)
 
@@ -28,22 +29,71 @@ class PingService:
         self.stats = {
             "total_pings": 0,
             "successful_pings": 0,
-            "failed_pings": 0
+            "failed_pings": 0,
+            "retry_pings": 0
         }
         self.config = {
             "url": "https://www.google.com",
             "interval": 5,  # minutes
-            "is_running": False
+            "is_running": False,
+            "discord_webhook_url": "",  # Discord webhook URL for notifications
+            "retry_on_failure": True,  # Whether to retry failed pings
+            "max_retries": 3,  # Maximum number of retry attempts
+            "retry_delay": 10,  # Delay between retries in seconds
+            "send_discord_on_success": False,  # Send Discord alerts on successful pings
+            "send_discord_on_failure": True,  # Send Discord alerts on failed pings
+            "user_agent": "Website Ping Service/1.0"  # Custom User-Agent
         }
         self.thread = None
         self.stop_event = threading.Event()
         
-    def ping(self, url=None):
+    def send_discord_notification(self, ping_result):
+        """
+        Send a notification to Discord via webhook.
+        
+        Args:
+            ping_result (dict): The result of the ping operation
+        """
+        if not self.config["discord_webhook_url"]:
+            return
+            
+        try:
+            webhook = DiscordWebhook(url=self.config["discord_webhook_url"])
+            
+            # Create embed for better formatting
+            if ping_result["success"]:
+                color = 0x00FF00  # Green
+                title = "✅ Website Ping Successful"
+            else:
+                color = 0xFF0000  # Red
+                title = "❌ Website Ping Failed"
+                
+            embed = DiscordEmbed(
+                title=title,
+                color=color,
+                description=f"URL: {ping_result['url']}",
+                timestamp=datetime.utcnow().isoformat()
+            )
+            
+            embed.add_embed_field(name="Status Code", value=str(ping_result.get("status_code", "N/A")))
+            embed.add_embed_field(name="Response Time", value=f"{ping_result.get('response_time', 0)}ms")
+            
+            if not ping_result["success"] and "error" in ping_result:
+                embed.add_embed_field(name="Error", value=ping_result["error"])
+                
+            webhook.add_embed(embed)
+            webhook.execute()
+            logger.info(f"Discord notification sent for {ping_result['url']}")
+        except Exception as e:
+            logger.error(f"Failed to send Discord notification: {str(e)}")
+        
+    def ping(self, url=None, is_retry=False):
         """
         Ping a website and record the result.
         
         Args:
             url (str, optional): URL to ping. If None, use the configured URL.
+            is_retry (bool, optional): Whether this ping is a retry attempt.
             
         Returns:
             dict: Ping result information
@@ -57,7 +107,7 @@ class PingService:
             response = requests.get(
                 url, 
                 timeout=10,
-                headers={'User-Agent': 'Website Ping Service/1.0'}
+                headers={'User-Agent': self.config["user_agent"]}
             )
             end_time = time.time()
             response_time = round((end_time - start_time) * 1000)  # in milliseconds
@@ -71,17 +121,34 @@ class PingService:
                 "url": url,
                 "status_code": response.status_code,
                 "success": success,
-                "response_time": response_time
+                "response_time": response_time,
+                "is_retry": is_retry
             }
             
-            self.history.appendleft(ping_entry)
-            self.stats["total_pings"] += 1
-            if success:
-                self.stats["successful_pings"] += 1
-                logger.info(f"Ping successful: {url} - Status: {response.status_code} - Time: {response_time}ms")
+            if not is_retry:  # Only count in stats if not a retry
+                self.history.appendleft(ping_entry)
+                self.stats["total_pings"] += 1
+                if success:
+                    self.stats["successful_pings"] += 1
+                    logger.info(f"Ping successful: {url} - Status: {response.status_code} - Time: {response_time}ms")
+                    
+                    # Send Discord notification for successful pings if enabled
+                    if self.config["send_discord_on_success"]:
+                        self.send_discord_notification(ping_entry)
+                else:
+                    self.stats["failed_pings"] += 1
+                    logger.warning(f"Ping failed: {url} - Status: {response.status_code}")
+                    
+                    # Send Discord notification for failed pings if enabled
+                    if self.config["send_discord_on_failure"]:
+                        self.send_discord_notification(ping_entry)
             else:
-                self.stats["failed_pings"] += 1
-                logger.warning(f"Ping failed: {url} - Status: {response.status_code}")
+                # This is a retry attempt
+                self.stats["retry_pings"] += 1
+                if success:
+                    logger.info(f"Retry successful: {url} - Status: {response.status_code} - Time: {response_time}ms")
+                else:
+                    logger.warning(f"Retry failed: {url} - Status: {response.status_code}")
                 
             return ping_entry
                 
@@ -94,12 +161,23 @@ class PingService:
                 "status_code": 0,
                 "success": False,
                 "error": str(e),
-                "response_time": 0
+                "response_time": 0,
+                "is_retry": is_retry
             }
-            self.history.appendleft(ping_entry)
-            self.stats["total_pings"] += 1
-            self.stats["failed_pings"] += 1
-            logger.error(f"Ping error: {url} - Error: {str(e)}")
+            
+            if not is_retry:  # Only count in stats if not a retry
+                self.history.appendleft(ping_entry)
+                self.stats["total_pings"] += 1
+                self.stats["failed_pings"] += 1
+                logger.error(f"Ping error: {url} - Error: {str(e)}")
+                
+                # Send Discord notification for errors if enabled
+                if self.config["send_discord_on_failure"]:
+                    self.send_discord_notification(ping_entry)
+            else:
+                # This is a retry attempt
+                self.stats["retry_pings"] += 1
+                logger.error(f"Retry error: {url} - Error: {str(e)}")
             
             return ping_entry
             
@@ -110,7 +188,42 @@ class PingService:
         logger.info(f"Starting ping service for {self.config['url']} every {self.config['interval']} minutes")
         
         while not self.stop_event.is_set():
-            self.ping()
+            # Perform initial ping
+            ping_result = self.ping()
+            
+            # If ping failed and retry is enabled, attempt retries
+            if not ping_result["success"] and self.config["retry_on_failure"]:
+                retry_count = 0
+                while (not ping_result["success"] and 
+                      retry_count < self.config["max_retries"] and 
+                      not self.stop_event.is_set()):
+                    # Wait for retry delay
+                    logger.info(f"Waiting {self.config['retry_delay']} seconds before retry {retry_count + 1}/{self.config['max_retries']}")
+                    
+                    # Use small intervals to check for stop event
+                    for _ in range(int(self.config['retry_delay'])):
+                        if self.stop_event.is_set():
+                            break
+                        time.sleep(1)
+                    
+                    # Break the retry loop if stop event is set
+                    if self.stop_event.is_set():
+                        break
+                        
+                    # Attempt a retry
+                    retry_count += 1
+                    logger.info(f"Retry attempt {retry_count}/{self.config['max_retries']} for {self.config['url']}")
+                    ping_result = self.ping(is_retry=True)
+                    
+                    # If retry succeeded, add it to history
+                    if ping_result["success"]:
+                        ping_result["retry_count"] = retry_count
+                        self.history.appendleft(ping_result)
+                        logger.info(f"Successfully recovered after {retry_count} retries")
+                
+                # If all retries failed, log the result
+                if not ping_result["success"] and retry_count >= self.config["max_retries"]:
+                    logger.error(f"All {retry_count} retry attempts failed for {self.config['url']}")
             
             # Wait for the configured interval
             # Convert minutes to seconds and use small intervals to check for stop event
@@ -122,13 +235,21 @@ class PingService:
         logger.info("Ping service stopped")
         self.config["is_running"] = False
     
-    def start(self, url=None, interval=None):
+    def start(self, url=None, interval=None, **kwargs):
         """
         Start the ping service.
         
         Args:
             url (str, optional): URL to ping. If None, use the current URL.
             interval (float, optional): Interval in minutes. If None, use the current interval.
+            **kwargs: Additional configuration options including:
+                - discord_webhook_url: URL for Discord webhook notifications
+                - retry_on_failure: Whether to retry failed pings
+                - max_retries: Maximum number of retry attempts
+                - retry_delay: Seconds to wait between retries
+                - send_discord_on_success: Send Discord alerts on successful pings
+                - send_discord_on_failure: Send Discord alerts on failed pings
+                - user_agent: Custom User-Agent string for HTTP requests
         """
         if url is not None:
             self.config["url"] = url
@@ -136,9 +257,26 @@ class PingService:
         if interval is not None:
             self.config["interval"] = max(0.5, float(interval))  # Minimum interval: 30 seconds
             
+        # Update other configuration options if provided
+        for key, value in kwargs.items():
+            if key in self.config:
+                self.config[key] = value
+                logger.info(f"Updated configuration: {key}={value}")
+            
         if self.thread and self.thread.is_alive():
             logger.info("Ping service already running")
             return
+        
+        # Log configuration summary
+        config_summary = {
+            "url": self.config["url"],
+            "interval": self.config["interval"],
+            "retry_on_failure": self.config["retry_on_failure"],
+            "max_retries": self.config["max_retries"],
+            "retry_delay": self.config["retry_delay"],
+            "discord_webhook_enabled": bool(self.config["discord_webhook_url"])
+        }
+        logger.info(f"Starting ping service with configuration: {config_summary}")
         
         self.stop_event.clear()
         self.thread = threading.Thread(target=self._ping_loop)
