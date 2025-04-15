@@ -586,6 +586,26 @@ class MultiPingService:
         target_id = next(iter(self.targets))
         return self.get_target_stats(target_id)
         
+    # Legacy property for backward compatibility
+    @property
+    def config(self):
+        """Legacy property for backward compatibility"""
+        if not self.targets:
+            return {
+                "url": "https://www.google.com",
+                "interval": 5,
+                "is_running": False,
+                "discord_webhook_url": "",
+                "retry_on_failure": True,
+                "max_retries": 3,
+                "retry_delay": 10,
+                "send_discord_on_success": False,
+                "send_discord_on_failure": True
+            }
+        
+        target_id = next(iter(self.targets))
+        return self.targets[target_id].config
+    
     def get_status(self):
         """
         Get the current status (legacy method).
@@ -596,7 +616,7 @@ class MultiPingService:
         if not self.targets:
             return {
                 "status": "stopped",
-                "config": {},
+                "config": self.config,
                 "stats": {
                     "total_pings": 0,
                     "successful_pings": 0,
