@@ -1,4 +1,4 @@
-from app import app  # noqa: F401
+from app_multi import app  # noqa: F401
 from multi_ping_service import MultiPingService
 
 # Initialize the ping service instance (Singleton)

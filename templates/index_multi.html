@@ -1,0 +1,309 @@
+<!DOCTYPE html>
+<html lang="en" data-bs-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ title }}</title>
+    <link href="https://cdn.replit.com/agent/bootstrap-agent-dark-theme.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
+    <style>
+        .ping-target {
+            transition: all 0.3s;
+        }
+        .ping-target:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
+        }
+        .card-header-actions {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .site-badge {
+            font-size: 0.8rem;
+        }
+        .loader {
+            width: 100%;
+            height: 200px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        .footer {
+            margin-top: 3rem;
+            padding: 1rem 0;
+            background-color: #212529;
+        }
+        .card-body .form-switch {
+            padding-left: 2.5em;
+        }
+    </style>
+</head>
+<body class="d-flex flex-column min-vh-100">
+    <nav class="navbar navbar-expand-lg bg-dark border-bottom border-body">
+        <div class="container">
+            <a class="navbar-brand" href="/">
+                <i class="bi bi-broadcast"></i> Multi-Site Ping Service
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" 
+                    data-bs-target="#navbarNav" aria-controls="navbarNav" 
+                    aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav me-auto">
+                    <li class="nav-item">
+                        <a class="nav-link active" href="/">Dashboard</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#" id="addNewTargetBtn">
+                            <i class="bi bi-plus-circle"></i> Add New Target
+                        </a>
+                    </li>
+                </ul>
+                <div class="d-flex">
+                    <a href="/logout" class="btn btn-outline-light">
+                        <i class="bi bi-box-arrow-right"></i> Logout
+                    </a>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container mt-4">
+        <div class="row">
+            <div class="col-md-12">
+                <div class="d-flex justify-content-between align-items-center">
+                    <h1>Website Ping Dashboard</h1>
+                    <button id="refreshAllBtn" class="btn btn-primary">
+                        <i class="bi bi-arrow-clockwise"></i> Refresh All
+                    </button>
+                </div>
+                <p class="lead">Monitor and keep your websites alive with scheduled pings</p>
+            </div>
+        </div>
+
+        <!-- Target summary statistics -->
+        <div class="row mb-4">
+            <div class="col-md-3">
+                <div class="card bg-dark mb-3">
+                    <div class="card-body">
+                        <h2 id="totalTargets">0</h2>
+                        <p class="mb-0">Total Targets</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card bg-dark mb-3">
+                    <div class="card-body">
+                        <h2 id="activeTargets">0</h2>
+                        <p class="mb-0">Active Targets</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card bg-dark mb-3">
+                    <div class="card-body">
+                        <h2 id="totalSuccessfulPings">0</h2>
+                        <p class="mb-0">Successful Pings</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card bg-dark mb-3">
+                    <div class="card-body">
+                        <h2 id="totalFailedPings">0</h2>
+                        <p class="mb-0">Failed Pings</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Target Cards Container -->
+        <div class="row" id="targetsContainer">
+            <div class="col-12 loader">
+                <div class="spinner-border text-primary" role="status">
+                    <span class="visually-hidden">Loading...</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Empty state message -->
+        <div id="emptyState" class="col-12 text-center py-5 d-none">
+            <div class="py-5">
+                <i class="bi bi-cloud-slash" style="font-size: 4rem;"></i>
+                <h3 class="mt-3">No ping targets yet</h3>
+                <p class="text-muted">Add your first website to start monitoring</p>
+                <button id="emptyStateAddBtn" class="btn btn-primary mt-2">
+                    <i class="bi bi-plus-circle"></i> Add Website
+                </button>
+            </div>
+        </div>
+
+        <!-- Global Ping History -->
+        <div class="row mt-4">
+            <div class="col-md-12">
+                <div class="card bg-dark">
+                    <div class="card-header">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <h5 class="mb-0">Ping History (All Targets)</h5>
+                            <button id="refreshHistoryBtn" class="btn btn-sm btn-primary">
+                                <i class="bi bi-arrow-clockwise"></i> Refresh
+                            </button>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <div class="table-responsive">
+                            <table class="table table-dark table-hover">
+                                <thead>
+                                    <tr>
+                                        <th>Time</th>
+                                        <th>URL</th>
+                                        <th>Status</th>
+                                        <th>Response Time</th>
+                                        <th>Result</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="historyTableBody">
+                                    <tr>
+                                        <td colspan="5" class="text-center">No ping history yet</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Add/Edit Target Modal -->
+    <div class="modal fade" id="targetModal" tabindex="-1" aria-labelledby="targetModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="targetModalLabel">Add New Ping Target</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="targetForm">
+                        <input type="hidden" id="targetId" value="">
+                        
+                        <!-- Basic Settings Tab -->
+                        <div class="mb-3">
+                            <label for="urlInput" class="form-label">Website URL</label>
+                            <input type="url" class="form-control" id="urlInput" 
+                                placeholder="https://example.com" required>
+                            <div class="form-text">The website URL to be pinged</div>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="intervalInput" class="form-label">Ping Interval (minutes)</label>
+                            <input type="number" class="form-control" id="intervalInput" 
+                                placeholder="5" min="0.5" step="0.5" value="5" required>
+                            <div class="form-text">How often to ping the website (minimum 0.5 minutes)</div>
+                        </div>
+                        
+                        <!-- Advanced Settings Section -->
+                        <div class="mt-4">
+                            <h5>Advanced Settings</h5>
+                            <hr>
+                            
+                            <div class="mb-3">
+                                <div class="form-check form-switch">
+                                    <input class="form-check-input" type="checkbox" id="retryOnFailureSwitch" checked>
+                                    <label class="form-check-label" for="retryOnFailureSwitch">Auto-retry on failure</label>
+                                </div>
+                                <div class="form-text">Automatically retry failed pings</div>
+                            </div>
+                            
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label for="maxRetriesInput" class="form-label">Max Retries</label>
+                                        <input type="number" class="form-control" id="maxRetriesInput" 
+                                            placeholder="3" min="1" value="3">
+                                        <div class="form-text">Maximum number of retry attempts</div>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label for="retryDelayInput" class="form-label">Retry Delay (seconds)</label>
+                                        <input type="number" class="form-control" id="retryDelayInput" 
+                                            placeholder="10" min="1" value="10">
+                                        <div class="form-text">Seconds to wait between retries</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Notification Settings Section -->
+                        <div class="mt-4">
+                            <h5>Notification Settings</h5>
+                            <hr>
+                            
+                            <div class="mb-3">
+                                <label for="discordWebhookInput" class="form-label">Discord Webhook URL</label>
+                                <input type="url" class="form-control" id="discordWebhookInput" 
+                                    placeholder="https://discord.com/api/webhooks/...">
+                                <div class="form-text">Send notifications to Discord</div>
+                            </div>
+                            
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <div class="form-check form-switch">
+                                            <input class="form-check-input" type="checkbox" id="discordOnSuccessSwitch">
+                                            <label class="form-check-label" for="discordOnSuccessSwitch">Notify on successful pings</label>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <div class="form-check form-switch">
+                                            <input class="form-check-input" type="checkbox" id="discordOnFailureSwitch" checked>
+                                            <label class="form-check-label" for="discordOnFailureSwitch">Notify on failed pings</label>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="button" class="btn btn-primary" id="saveTargetBtn">Save Target</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Confirmation Modal -->
+    <div class="modal fade" id="confirmationModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Confirm Action</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body" id="confirmationMessage">
+                    Are you sure you want to proceed with this action?
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="button" class="btn btn-danger" id="confirmActionBtn">Confirm</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <footer class="footer py-3 bg-dark mt-auto">
+        <div class="container text-center">
+            <span class="text-muted">Multi-Site Ping Service &copy; 2025</span>
+        </div>
+    </footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="/static/js/multi_main.js"></script>
+</body>
+</html>

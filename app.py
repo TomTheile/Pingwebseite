@@ -3,7 +3,7 @@ import logging
 from flask import Flask, render_template, request, jsonify, redirect, url_for, flash
 from flask_login import LoginManager, login_user, logout_user, login_required, current_user
 
-from ping_service import PingService
+from multi_ping_service import MultiPingService
 from user import User
 from forms import LoginForm
 
@@ -21,7 +21,7 @@ login_manager.init_app(app)
 login_manager.login_view = 'login'
 
 # Create ping service instance
-ping_service = PingService(history_size=100)
+ping_service = MultiPingService()
 
 @login_manager.user_loader
 def load_user(user_id):
