@@ -4,6 +4,55 @@ document.addEventListener('DOMContentLoaded', function() {
     const emptyState = document.getElementById('emptyState');
     const historyTableBody = document.getElementById('historyTableBody');
     const refreshAllBtn = document.getElementById('refreshAllBtn');
+    const urlInputsContainer = document.getElementById('urlInputsContainer');
+    const addUrlBtn = document.getElementById('addUrlBtn');
+
+    // URL Input Field Management
+    function addUrlInput() {
+        const div = document.createElement('div');
+        div.className = 'input-group mb-2';
+        div.innerHTML = `
+            <input type="url" class="form-control url-input" placeholder="https://example.com" required>
+            <button class="btn btn-outline-danger remove-url" type="button">
+                <i class="bi bi-trash"></i>
+            </button>
+        `;
+        
+        urlInputsContainer.appendChild(div);
+        const input = div.querySelector('input');
+        input.focus();
+        
+        // Add event listeners
+        input.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                addUrlInput();
+            }
+        });
+        
+        div.querySelector('.remove-url').addEventListener('click', () => {
+            if (urlInputsContainer.children.length > 1) {
+                div.remove();
+            }
+        });
+    }
+
+    // Initialize first URL input
+    addUrlBtn.addEventListener('click', addUrlInput);
+    
+    // Add event listener to first URL input
+    urlInputsContainer.querySelector('input').addEventListener('keypress', (e) => {
+        if (e.key === 'Enter') {
+            e.preventDefault();
+            addUrlInput();
+        }
+    });
+    
+    urlInputsContainer.querySelector('.remove-url').addEventListener('click', (e) => {
+        if (urlInputsContainer.children.length > 1) {
+            e.target.closest('.input-group').remove();
+        }
+    });
     const refreshHistoryBtn = document.getElementById('refreshHistoryBtn');
     const addNewTargetBtn = document.getElementById('addNewTargetBtn');
     const emptyStateAddBtn = document.getElementById('emptyStateAddBtn');

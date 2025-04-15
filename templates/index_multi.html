@@ -188,27 +188,37 @@
                 <div class="modal-body">
                     <form id="targetForm">
                         <input type="hidden" id="targetId" value="">
-                        
+
                         <!-- Basic Settings Tab -->
                         <div class="mb-3">
-                            <label for="urlInput" class="form-label">Website URL</label>
-                            <input type="url" class="form-control" id="urlInput" 
-                                placeholder="https://example.com" required>
-                            <div class="form-text">The website URL to be pinged</div>
+                            <label for="urlInput" class="form-label">Website URLs</label>
+                            <div id="urlInputsContainer">
+                                <div class="input-group mb-2">
+                                    <input type="url" class="form-control url-input" 
+                                           placeholder="https://example.com" required>
+                                    <button class="btn btn-outline-danger remove-url" type="button">
+                                        <i class="bi bi-trash"></i>
+                                    </button>
+                                </div>
+                            </div>
+                            <button class="btn btn-outline-primary btn-sm" id="addUrlBtn" type="button">
+                                <i class="bi bi-plus-circle"></i> Add URL
+                            </button>
+                            <div class="form-text">Press Enter to add a new URL field</div>
                         </div>
-                        
+
                         <div class="mb-3">
                             <label for="intervalInput" class="form-label">Ping Interval (minutes)</label>
                             <input type="number" class="form-control" id="intervalInput" 
                                 placeholder="5" min="0.5" step="0.5" value="5" required>
                             <div class="form-text">How often to ping the website (minimum 0.5 minutes)</div>
                         </div>
-                        
+
                         <!-- Advanced Settings Section -->
                         <div class="mt-4">
                             <h5>Advanced Settings</h5>
                             <hr>
-                            
+
                             <div class="mb-3">
                                 <div class="form-check form-switch">
                                     <input class="form-check-input" type="checkbox" id="retryOnFailureSwitch" checked>
@@ -216,7 +226,7 @@
                                 </div>
                                 <div class="form-text">Automatically retry failed pings</div>
                             </div>
-                            
+
                             <div class="row">
                                 <div class="col-md-6">
                                     <div class="mb-3">
@@ -236,19 +246,19 @@
                                 </div>
                             </div>
                         </div>
-                        
+
                         <!-- Notification Settings Section -->
                         <div class="mt-4">
                             <h5>Notification Settings</h5>
                             <hr>
-                            
+
                             <div class="mb-3">
                                 <label for="discordWebhookInput" class="form-label">Discord Webhook URL</label>
                                 <input type="url" class="form-control" id="discordWebhookInput" 
                                     placeholder="https://discord.com/api/webhooks/...">
                                 <div class="form-text">Send notifications to Discord</div>
                             </div>
-                            
+
                             <div class="row">
                                 <div class="col-md-6">
                                     <div class="mb-3">
