@@ -1,8 +1,11 @@
 import os
 import logging
-from flask import Flask, render_template, request, jsonify
+from flask import Flask, render_template, request, jsonify, redirect, url_for, flash
+from flask_login import LoginManager, login_user, logout_user, login_required, current_user
 
 from ping_service import PingService
+from user import User
+from forms import LoginForm
 
 # Configure logging
 logging.basicConfig(level=logging.DEBUG)
@@ -12,9 +15,17 @@ logger = logging.getLogger(__name__)
 app = Flask(__name__)
 app.secret_key = os.environ.get("SESSION_SECRET", "default_secret_key")
 
+# Initialize Flask-Login
+login_manager = LoginManager()
+login_manager.init_app(app)
+login_manager.login_view = 'login'
+
 # Create ping service instance
 ping_service = PingService(history_size=100)
 
+@login_manager.user_loader
+def load_user(user_id):
+    return User.get(int(user_id))
 
 
 @app.route('/')
