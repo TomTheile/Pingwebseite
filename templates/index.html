@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="en" data-bs-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Website Ping Service</title>
+    <link rel="stylesheet" href="https://cdn.replit.com/agent/bootstrap-agent-dark-theme.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/custom.css') }}">
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark mb-4">
+        <div class="container">
+            <a class="navbar-brand" href="#">
+                <i class="bi bi-wifi"></i> Website Ping Service
+            </a>
+        </div>
+    </nav>
+
+    <div class="container mb-5">
+        <div class="row">
+            <div class="col-md-12">
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <h5 class="mb-0">Configuration</h5>
+                    </div>
+                    <div class="card-body">
+                        <form id="configForm">
+                            <div class="mb-3">
+                                <label for="urlInput" class="form-label">Website URL</label>
+                                <input type="url" class="form-control" id="urlInput" 
+                                       placeholder="https://example.com" value="{{ config.url }}" required>
+                                <div class="form-text">The website URL to ping (include https:// or http://)</div>
+                            </div>
+                            <div class="mb-3">
+                                <label for="intervalInput" class="form-label">Ping Interval (minutes)</label>
+                                <input type="number" class="form-control" id="intervalInput" 
+                                       min="0.5" step="0.5" value="{{ config.interval }}" required>
+                                <div class="form-text">How often to ping the website (minimum: 0.5 minutes)</div>
+                            </div>
+                            <div class="d-flex gap-2">
+                                <button type="button" id="startBtn" class="btn btn-success">
+                                    <i class="bi bi-play-fill"></i> Start Pinging
+                                </button>
+                                <button type="button" id="stopBtn" class="btn btn-danger">
+                                    <i class="bi bi-stop-fill"></i> Stop Pinging
+                                </button>
+                                <button type="button" id="pingNowBtn" class="btn btn-primary">
+                                    <i class="bi bi-send"></i> Ping Now
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+
+                <div class="card mb-4">
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                        <h5 class="mb-0">Service Status</h5>
+                        <span id="statusBadge" class="badge rounded-pill">Unknown</span>
+                    </div>
+                    <div class="card-body">
+                        <div class="row text-center">
+                            <div class="col-md-4">
+                                <div class="card bg-dark mb-3">
+                                    <div class="card-body">
+                                        <h2 id="totalPings">0</h2>
+                                        <p class="mb-0">Total Pings</p>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="card bg-dark mb-3">
+                                    <div class="card-body">
+                                        <h2 id="successfulPings">0</h2>
+                                        <p class="mb-0">Successful Pings</p>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="card bg-dark mb-3">
+                                    <div class="card-body">
+                                        <h2 id="failedPings">0</h2>
+                                        <p class="mb-0">Failed Pings</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                        <h5 class="mb-0">Ping History</h5>
+                        <button type="button" id="refreshHistoryBtn" class="btn btn-sm btn-secondary">
+                            <i class="bi bi-arrow-clockwise"></i> Refresh
+                        </button>
+                    </div>
+                    <div class="card-body p-0">
+                        <div class="table-responsive">
+                            <table class="table table-striped table-hover mb-0">
+                                <thead>
+                                    <tr>
+                                        <th scope="col">Time</th>
+                                        <th scope="col">URL</th>
+                                        <th scope="col">Status</th>
+                                        <th scope="col">Response Time</th>
+                                        <th scope="col">Result</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="historyTableBody">
+                                    <tr>
+                                        <td colspan="5" class="text-center">No ping history yet</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <footer class="footer py-3 bg-dark mt-auto">
+        <div class="container text-center">
+            <span class="text-muted">Website Ping Service &copy; 2023</span>
+        </div>
+    </footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+</body>
+</html>

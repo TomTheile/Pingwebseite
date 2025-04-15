@@ -1,0 +1,62 @@
+/* Custom CSS styles */
+
+html {
+    position: relative;
+    min-height: 100%;
+}
+
+body {
+    margin-bottom: 60px; /* Margin bottom by footer height */
+    padding-bottom: 20px;
+}
+
+.footer {
+    position: absolute;
+    bottom: 0;
+    width: 100%;
+    height: 60px; /* Set the fixed height of the footer here */
+    line-height: 60px; /* Vertically center the text there */
+}
+
+.table-responsive {
+    max-height: 400px;
+    overflow-y: auto;
+}
+
+/* Custom styling for status badge */
+.badge {
+    font-size: 0.875rem;
+    padding: 0.4em 0.6em;
+}
+
+/* Add some spacing to the ping statistics cards */
+.card {
+    box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+    transition: all 0.3s ease;
+}
+
+.card:hover {
+    box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .card-body {
+        padding: 1rem;
+    }
+    
+    .table th, .table td {
+        padding: 0.5rem;
+    }
+}
+
+/* Make the table rows more compact */
+.table td, .table th {
+    padding: 0.5rem 0.75rem;
+    vertical-align: middle;
+}
+
+/* Add a subtle highlight for the config card */
+.card-header {
+    background-color: rgba(0, 0, 0, 0.1);
+}
