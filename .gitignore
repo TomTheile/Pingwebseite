@@ -1,0 +1,44 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# Environment variables
+.env
+
+# Local configuration
+instance/
+
+# Logs
+logs/
+*.log
+
+# IDE files
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# Virtual environment
+venv/
+ENV/
+
+# Flask session
+flask_session/
