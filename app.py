@@ -28,7 +28,39 @@ def load_user(user_id):
     return User.get(int(user_id))
 
 
+@app.route('/login', methods=['GET', 'POST'])
+def login():
+    """
+    Login page
+    """
+    if current_user.is_authenticated:
+        return redirect(url_for('index'))
+        
+    form = LoginForm()
+    if form.validate_on_submit():
+        user = User.find_by_username(form.username.data)
+        if user and user.check_password(form.password.data):
+            login_user(user, remember=form.remember_me.data)
+            flash('Login successful!', 'success')
+            next_page = request.args.get('next')
+            return redirect(next_page or url_for('index'))
+        else:
+            flash('Invalid username or password', 'danger')
+    
+    return render_template('login.html', form=form)
+
+@app.route('/logout')
+@login_required
+def logout():
+    """
+    Logout route
+    """
+    logout_user()
+    flash('You have been logged out', 'info')
+    return redirect(url_for('login'))
+
 @app.route('/')
+@login_required
 def index():
     """
     Main page that displays the ping service UI
@@ -36,6 +68,7 @@ def index():
     return render_template('index.html', config=ping_service.config)
 
 @app.route('/api/start', methods=['POST'])
+@login_required
 def api_start():
     """
     API endpoint to start the ping service
@@ -93,6 +126,7 @@ def api_start():
     })
 
 @app.route('/api/stop', methods=['POST'])
+@login_required
 def api_stop():
     """
     API endpoint to stop the ping service
@@ -105,6 +139,7 @@ def api_stop():
     })
 
 @app.route('/api/status', methods=['GET'])
+@login_required
 def api_status():
     """
     API endpoint to get the current status of the ping service
@@ -112,6 +147,7 @@ def api_status():
     return jsonify(ping_service.get_status())
 
 @app.route('/api/history', methods=['GET'])
+@login_required
 def api_history():
     """
     API endpoint to get the ping history
@@ -119,6 +155,7 @@ def api_history():
     return jsonify(ping_service.get_history())
 
 @app.route('/api/ping_now', methods=['POST'])
+@login_required
 def api_ping_now():
     """
     API endpoint to trigger an immediate ping

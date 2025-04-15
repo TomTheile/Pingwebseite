@@ -41,8 +41,7 @@ class PingService:
             "max_retries": 3,  # Maximum number of retry attempts
             "retry_delay": 10,  # Delay between retries in seconds
             "send_discord_on_success": False,  # Send Discord alerts on successful pings
-            "send_discord_on_failure": True,  # Send Discord alerts on failed pings
-            "user_agent": "Website Ping Service/1.0"  # Custom User-Agent
+            "send_discord_on_failure": True  # Send Discord alerts on failed pings
         }
         self.thread = None
         self.stop_event = threading.Event()
@@ -106,8 +105,7 @@ class PingService:
             start_time = time.time()
             response = requests.get(
                 url, 
-                timeout=10,
-                headers={'User-Agent': self.config["user_agent"]}
+                timeout=10
             )
             end_time = time.time()
             response_time = round((end_time - start_time) * 1000)  # in milliseconds
@@ -249,7 +247,6 @@ class PingService:
                 - retry_delay: Seconds to wait between retries
                 - send_discord_on_success: Send Discord alerts on successful pings
                 - send_discord_on_failure: Send Discord alerts on failed pings
-                - user_agent: Custom User-Agent string for HTTP requests
         """
         if url is not None:
             self.config["url"] = url
