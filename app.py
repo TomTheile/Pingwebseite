@@ -113,8 +113,7 @@ def api_start():
     if 'send_discord_on_failure' in data:
         kwargs['send_discord_on_failure'] = bool(data['send_discord_on_failure'])
     
-    if 'user_agent' in data:
-        kwargs['user_agent'] = data['user_agent']
+
     
     # Start the ping service with the provided configuration
     ping_service.start(url=url, interval=interval, **kwargs)

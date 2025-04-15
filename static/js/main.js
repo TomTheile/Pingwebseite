@@ -2,7 +2,6 @@ document.addEventListener('DOMContentLoaded', function() {
     // DOM Elements
     const urlInput = document.getElementById('urlInput');
     const intervalInput = document.getElementById('intervalInput');
-    const userAgentInput = document.getElementById('userAgentInput');
     const startBtn = document.getElementById('startBtn');
     const stopBtn = document.getElementById('stopBtn');
     const pingNowBtn = document.getElementById('pingNowBtn');
@@ -64,7 +63,6 @@ document.addEventListener('DOMContentLoaded', function() {
         // Validate inputs
         const url = urlInput.value.trim();
         const interval = parseFloat(intervalInput.value);
-        const userAgent = userAgentInput.value.trim();
         
         // Get advanced options
         const retryOnFailure = document.getElementById('retryOnFailureSwitch').checked;
@@ -90,7 +88,6 @@ document.addEventListener('DOMContentLoaded', function() {
         const requestBody = {
             url: url,
             interval: interval,
-            user_agent: userAgent,
             retry_on_failure: retryOnFailure,
             max_retries: maxRetries,
             retry_delay: retryDelay,
@@ -201,12 +198,6 @@ document.addEventListener('DOMContentLoaded', function() {
         // Update basic config values
         urlInput.value = data.config.url;
         intervalInput.value = data.config.interval;
-        
-        // Update User Agent
-        const userAgentInput = document.getElementById('userAgentInput');
-        if (userAgentInput && data.config.user_agent) {
-            userAgentInput.value = data.config.user_agent;
-        }
         
         // Update advanced settings
         const retryOnFailureSwitch = document.getElementById('retryOnFailureSwitch');
