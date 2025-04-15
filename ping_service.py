@@ -18,6 +18,18 @@ class PingService:
     Service that periodically pings a website to prevent it from going to sleep.
     """
     
+    _instance = None  # Class variable to store singleton instance
+    
+    def __new__(cls, *args, **kwargs):
+        """
+        Create a new instance or return the existing one (Singleton pattern).
+        This ensures that only one instance of PingService exists.
+        """
+        if cls._instance is None:
+            cls._instance = super(PingService, cls).__new__(cls)
+            cls._instance._initialized = False
+        return cls._instance
+        
     def __init__(self, history_size=100):
         """
         Initialize the ping service.
@@ -25,6 +37,10 @@ class PingService:
         Args:
             history_size (int): Maximum number of ping records to keep in history
         """
+        # Skip initialization if already initialized (part of Singleton pattern)
+        if getattr(self, "_initialized", False):
+            return
+            
         self.history = deque(maxlen=history_size)
         self.stats = {
             "total_pings": 0,
@@ -45,6 +61,7 @@ class PingService:
         }
         self.thread = None
         self.stop_event = threading.Event()
+        self._initialized = True  # Mark as initialized
         
     def send_discord_notification(self, ping_result):
         """
